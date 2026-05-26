@@ -13,14 +13,17 @@ class TourViewSet(viewsets.ModelViewSet):
 class ReservaViewSet(viewsets.ModelViewSet):
     queryset = Reserva.objects.all().order_by('-id')
     serializer_class = ReservaSerializer
-    permission_classes = [permissions.AllowAny]
+    # Permite que cualquiera reserve sin estar logueado, así evitas errores de Auth
+    permission_classes = [permissions.AllowAny] 
 
     def perform_create(self, serializer):
-        usuario_por_defecto = User.objects.first()
+        # Calculamos el precio total basándonos en el precio del tour
         tour = serializer.validated_data['tour']
         cantidad = serializer.validated_data.get('cantidad_pasajeros', 1)
         total = tour.precio * cantidad
-        serializer.save(usuario=usuario_por_defecto, precio_total=total)
+        
+        # Guardamos sin intentar asignar un usuario, para no romper la app
+        serializer.save(precio_total=total)
 
 # ==========================================
 # VISTAS DEL DASHBOARD WEB ADMINISTRATIVO

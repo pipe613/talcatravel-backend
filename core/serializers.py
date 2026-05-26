@@ -9,4 +9,5 @@ class TourSerializer(serializers.ModelSerializer):
 class ReservaSerializer(serializers.ModelSerializer):
     class Meta:
         model = Reserva
-        fields = ['id', 'tour', 'fecha', 'cantidad_pasajeros', 'precio_total'] # Incluido precio_total
+        # Solo incluye lo que realmente envías desde la App
+        fields = ['id', 'tour', 'fecha', 'cantidad_pasajeros', 'precio_total']
