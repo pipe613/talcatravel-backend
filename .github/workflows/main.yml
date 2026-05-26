@@ -36,6 +36,6 @@ jobs:
           key: ${{ secrets.AWS_SSH_KEY }}
           # Los comandos que se ejecutarán remotamente en tu servidor AWS
           script: |
-            cd /home/ubuntu/talcatravel-tech
+            cd /home/ubuntu/talcatravel-backend
             git pull origin main
-            docker-compose up -d --build
+            docker compose up -d --build
