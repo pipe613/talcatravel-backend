@@ -18,7 +18,7 @@ jobs:
 
       - name: Verificar construcción de Docker
         # Construye la imagen para confirmar que el Dockerfile y requirements.txt están sanos
-        run: docker build -t tuagencia-test .
+        run: docker build -t talcatravel-test .
 
   # ==========================================
   # FASE 2: DESPLIEGUE CONTINUO (CD) EN AWS
@@ -36,6 +36,6 @@ jobs:
           key: ${{ secrets.AWS_SSH_KEY }}
           # Los comandos que se ejecutarán remotamente en tu servidor AWS
           script: |
-            cd /home/ubuntu/tuagencia_cloud
+            cd /home/ubuntu/talcatravel-tech
             git pull origin main
             docker-compose up -d --build
