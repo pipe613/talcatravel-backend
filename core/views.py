@@ -1,6 +1,5 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth.models import User
 from rest_framework import viewsets, permissions
 from .models import Tour, Reserva
 from .serializers import TourSerializer, ReservaSerializer
@@ -13,16 +12,12 @@ class TourViewSet(viewsets.ModelViewSet):
 class ReservaViewSet(viewsets.ModelViewSet):
     queryset = Reserva.objects.all().order_by('-id')
     serializer_class = ReservaSerializer
-    # Permite que cualquiera reserve sin estar logueado, así evitas errores de Auth
     permission_classes = [permissions.AllowAny] 
 
     def perform_create(self, serializer):
-        # Calculamos el precio total basándonos en el precio del tour
         tour = serializer.validated_data['tour']
         cantidad = serializer.validated_data.get('cantidad_pasajeros', 1)
         total = tour.precio * cantidad
-        
-        # Guardamos sin intentar asignar un usuario, para no romper la app
         serializer.save(precio_total=total)
 
 # ==========================================
@@ -36,7 +31,6 @@ def dashboard(request):
     return render(request, 'dashboard.html', {'tours': tours, 'reservas': reservas})
 
 # --- Acciones para Tours ---
-
 @login_required(login_url='login')
 def crear_tour(request):
     if request.method == 'POST':
@@ -67,7 +61,6 @@ def eliminar_tour(request, pk):
     return redirect('dashboard')
 
 # --- Acciones para Reservas ---
-
 @login_required(login_url='login')
 def crear_reserva(request):
     if request.method == 'POST':
@@ -76,7 +69,7 @@ def crear_reserva(request):
         cantidad = int(request.POST.get('cantidad_pasajeros', 1))
         
         Reserva.objects.create(
-            usuario=request.user,
+            # ELIMINADO: usuario=request.user
             tour=tour_obj,
             fecha=request.POST.get('fecha'),
             cantidad_pasajeros=cantidad,
