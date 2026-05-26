@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Dashboard - TalcaTravel Tech</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-gray-100 font-sans h-screen flex overflow-hidden">
+
+    <div class="w-64 bg-slate-900 text-white flex flex-col justify-between shadow-xl z-10">
+        <div>
+            <div class="p-5 bg-slate-950 flex items-center space-x-3">
+                <i class="fa-solid fa-map-location-dot text-blue-400 text-2xl"></i>
+                <span class="text-lg font-bold tracking-wider">TalcaTravel Tech</span>
+            </div>
+            
+            <nav class="mt-6 px-4 space-y-2">
+                <button onclick="switchTab('tours-panel')" id="btn-tours" class="tab-btn w-full flex items-center space-x-3 px-4 py-3 rounded-lg font-medium transition-all bg-blue-600 text-white">
+                    <i class="fa-solid fa-images font-lg"></i>
+                    <span>Tours Disponibles</span>
+                </button>
+                <button onclick="switchTab('reservas-panel')" id="btn-reservas" class="tab-btn w-full flex items-center space-x-3 px-4 py-3 rounded-lg font-medium transition-all text-slate-400 hover:bg-slate-800 hover:text-white">
+                    <i class="fa-solid fa-receipt font-lg"></i>
+                    <span>Control Reservas</span>
+                </button>
+            </nav>
+        </div>
+
+        <div class="p-4 bg-slate-950 border-t border-slate-800 flex flex-col space-y-3">
+            <div class="flex items-center space-x-3 px-2">
+                <div class="w-9 h-9 bg-blue-500 rounded-full flex items-center justify-center font-bold text-white uppercase">
+                    {{ user.username|slice:":2" }}
+                </div>
+                <div class="flex flex-col">
+                    <span class="text-sm font-semibold text-slate-200">{{ user.username }}</span>
+                    <span class="text-xs text-slate-400">Gestor Activo</span>
+                </div>
+            </div>
+            <form action="{% url 'logout' %}" method="post" class="w-full">
+                {% csrf_token %}
+                <button type="submit" class="w-full flex items-center justify-center space-x-2 bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-3 rounded-lg text-sm transition-colors">
+                    <i class="fa-solid fa-power-off"></i>
+                    <span>Cerrar Sesión</span>
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <div class="flex-1 flex flex-col h-full overflow-y-auto p-8">
+
+        <div id="tours-panel" class="tab-content space-y-6 hidden">
+            <div class="flex justify-between items-center bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+                <div>
+                    <h1 class="text-2xl font-bold text-slate-800">Catálogo de Tours</h1>
+                    <p class="text-sm text-gray-500">Añade, edita o elimina los paquetes turísticos visibles en la App móvil.</p>
+                </div>
+                <button onclick="openModal('modal-add-tour')" class="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-2.5 px-4 rounded-lg flex items-center space-x-2 shadow-sm transition-colors">
+                    <i class="fa-solid fa-plus"></i>
+                    <span>Agregar Tour</span>
+                </button>
+            </div>
+
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-slate-800 text-white">
+                        <tr>
+                            <th class="py-3.5 px-6 text-left text-xs font-semibold uppercase tracking-wider">ID</th>
+                            <th class="py-3.5 px-6 text-left text-xs font-semibold uppercase tracking-wider">Nombre del Tour</th>
+                            <th class="py-3.5 px-6 text-left text-xs font-semibold uppercase tracking-wider">Destino Geográfico</th>
+                            <th class="py-3.5 px-6 text-left text-xs font-semibold uppercase tracking-wider">Precio Unitario</th>
+                            <th class="py-3.5 px-6 text-left text-xs font-semibold uppercase tracking-wider">Duración</th>
+                            <th class="py-3.5 px-6 text-center text-xs font-semibold uppercase tracking-wider">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-200 bg-white">
+                        {% for tour in tours %}
+                        <tr class="hover:bg-gray-50 transition-colors">
+                            <td class="py-4 px-6 text-sm font-semibold text-gray-500">#{{ tour.id }}</td>
+                            <td class="py-4 px-6 text-sm font-bold text-slate-900">{{ tour.nombre }}</td>
+                            <td class="py-4 px-6 text-sm text-gray-600"><i class="fa-solid fa-location-dot text-red-500 mr-1.5"></i>{{ tour.destino }}</td>
+                            <td class="py-4 px-6 text-sm font-bold text-emerald-600">${{ tour.precio }}</td>
+                            <td class="py-4 px-6 text-sm text-gray-600">{{ tour.duracion_dias }} días</td>
+                            <td class="py-4 px-6 text-sm text-center space-x-2">
+                                <button onclick="openEditTourModal('{{ tour.id }}', '{{ tour.nombre }}', '{{ tour.destino }}', '{{ tour.precio }}', '{{ tour.duracion_dias }}')" class="text-blue-600 hover:text-blue-900 bg-blue-50 hover:bg-blue-100 py-1.5 px-3 rounded-md font-medium transition-all text-xs"><i class="fa-solid fa-pen mr-1"></i>Editar</button>
+                                <button onclick="openDeleteModal('/tours/eliminar/{{ tour.id }}/')" class="text-red-600 hover:text-red-900 bg-red-50 hover:bg-red-100 py-1.5 px-3 rounded-md font-medium transition-all text-xs"><i class="fa-solid fa-trash mr-1"></i>Eliminar</button>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6" class="py-8 text-center text-gray-500 font-medium">No se registran tours en la base de datos central.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div id="reservas-panel" class="tab-content space-y-6 hidden">
+            <div class="flex justify-between items-center bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+                <div>
+                    <h1 class="text-2xl font-bold text-slate-800">Control de Reservas</h1>
+                    <p class="text-sm text-gray-500">Monitorea y gestiona las solicitudes de viaje generadas de manera local o móvil.</p>
+                </div>
+                <button onclick="openModal('modal-add-reserva')" class="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-2.5 px-4 rounded-lg flex items-center space-x-2 shadow-sm transition-colors">
+                    <i class="fa-solid fa-plus"></i>
+                    <span>Agregar Reserva</span>
+                </button>
+            </div>
+
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-slate-800 text-white">
+                        <tr>
+                            <th class="py-3.5 px-6 text-left text-xs font-semibold uppercase tracking-wider">ID</th>
+                            <th class="py-3.5 px-6 text-left text-xs font-semibold uppercase tracking-wider">Tour Solicitado</th>
+                            <th class="py-3.5 px-6 text-left text-xs font-semibold uppercase tracking-wider">Fecha de Salida</th>
+                            <th class="py-3.5 px-6 text-left text-xs font-semibold uppercase tracking-wider">Pasajeros</th>
+                            <th class="py-3.5 px-6 text-left text-xs font-semibold uppercase tracking-wider">Monto Total</th>
+                            <th class="py-3.5 px-6 text-center text-xs font-semibold uppercase tracking-wider">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-200 bg-white">
+                        {% for reserva in reservas %}
+                        <tr class="hover:bg-gray-50 transition-colors">
+                            <td class="py-4 px-6 text-sm font-semibold text-gray-500">#{{ reserva.id }}</td>
+                            <td class="py-4 px-6 text-sm font-bold text-slate-900">{{ reserva.tour.nombre }}</td>
+                            <td class="py-4 px-6 text-sm text-gray-600"><i class="fa-solid fa-calendar text-blue-500 mr-1.5"></i>{{ reserva.fecha|date:"Y-m-d" }}</td>
+                            <td class="py-4 px-6 text-sm"><span class="bg-blue-100 text-blue-800 font-semibold text-xs px-2.5 py-1 rounded-full">pax: {{ reserva.cantidad_pasajeros }}</span></td>
+                            <td class="py-4 px-6 text-sm font-black text-green-600">${{ reserva.precio_total }}</td>
+                            <td class="py-4 px-6 text-sm text-center space-x-2">
+                                <button onclick="openEditReservaModal('{{ reserva.id }}', '{{ reserva.tour.id }}', '{{ reserva.fecha|date:'Y-m-d' }}', '{{ reserva.cantidad_pasajeros }}')" class="text-blue-600 hover:text-blue-900 bg-blue-50 hover:bg-blue-100 py-1.5 px-3 rounded-md font-medium transition-all text-xs"><i class="fa-solid fa-pen mr-1"></i>Editar</button>
+                                <button onclick="openDeleteModal('/reservas/eliminar/{{ reserva.id }}/')" class="text-red-600 hover:text-red-900 bg-red-50 hover:bg-red-100 py-1.5 px-3 rounded-md font-medium transition-all text-xs"><i class="fa-solid fa-trash mr-1"></i>Eliminar</button>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6" class="py-8 text-center text-gray-500 font-medium">No se registran solicitudes activas en el sistema.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-add-tour" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center z-50">
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-md overflow-hidden transform transition-all border border-gray-100">
+            <div class="bg-slate-800 text-white p-4 flex justify-between items-center">
+                <h3 class="font-bold text-lg"><i class="fa-solid fa-plane-departure mr-2 text-emerald-400"></i>Nuevo Registro Turístico</h3>
+                <button onclick="closeModal('modal-add-tour')" class="text-gray-400 hover:text-white text-xl">&times;</button>
+            </div>
+            <form action="{% url 'crear_tour' %}" method="post" class="p-6 space-y-4">
+                {% csrf_token %}
+                <div>
+                    <label class="block text-sm font-bold text-slate-700 mb-1">Nombre Comercial del Tour</label>
+                    <input type="text" name="nombre" class="w-full border p-2.5 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm" required>
+                </div>
+                <div>
+                    <label class="block text-sm font-bold text-slate-700 mb-1">Destino Oficial</label>
+                    <input type="text" name="destino" class="w-full border p-2.5 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm" required>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-bold text-slate-700 mb-1">Precio Unitario ($)</label>
+                        <input type="number" name="precio" class="w-full border p-2.5 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm" required>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-bold text-slate-700 mb-1">Duración (Días)</label>
+                        <input type="number" name="duracion" class="w-full border p-2.5 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm" required>
+                    </div>
+                </div>
+                <div class="flex justify-end space-x-3 pt-2">
+                    <button type="button" onclick="closeModal('modal-add-tour')" class="bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium py-2 px-4 rounded-lg text-sm transition-colors">Cancelar</button>
+                    <button type="submit" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 px-4 rounded-lg text-sm shadow-sm transition-colors">Guardar Datos</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="modal-edit-tour" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center z-50">
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-md overflow-hidden border border-gray-100">
+            <div class="bg-slate-800 text-white p-4 flex justify-between items-center">
+                <h3 class="font-bold text-lg"><i class="fa-solid fa-pen-to-square mr-2 text-blue-400"></i>Modificar Información del Tour</h3>
+                <button onclick="closeModal('modal-edit-tour')" class="text-gray-400 hover:text-white text-xl">&times;</button>
+            </div>
+            <form id="form-edit-tour" method="post" class="p-6 space-y-4">
+                {% csrf_token %}
+                <div>
+                    <label class="block text-sm font-bold text-slate-700 mb-1">Nombre Comercial del Tour</label>
+                    <input type="text" id="edit-tour-nombre" name="nombre" class="w-full border p-2.5 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm" required>
+                </div>
+                <div>
+                    <label class="block text-sm font-bold text-slate-700 mb-1">Destino Oficial</label>
+                    <input type="text" id="edit-tour-destino" name="destino" class="w-full border p-2.5 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm" required>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-bold text-slate-700 mb-1">Precio Unitario ($)</label>
+                        <input type="number" id="edit-tour-precio" name="precio" class="w-full border p-2.5 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm" required>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-bold text-slate-700 mb-1">Duración (Días)</label>
+                        <input type="number" id="edit-tour-duracion" name="duracion" class="w-full border p-2.5 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm" required>
+                    </div>
+                </div>
+                <div class="flex justify-end space-x-3 pt-2">
+                    <button type="button" onclick="closeModal('modal-edit-tour')" class="bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium py-2 px-4 rounded-lg text-sm transition-colors">Cancelar</button>
+                    <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg text-sm shadow-sm transition-colors">Actualizar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="modal-add-reserva" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center z-50">
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-md overflow-hidden border border-gray-100">
+            <div class="bg-slate-800 text-white p-4 flex justify-between items-center">
+                <h3 class="font-bold text-lg"><i class="fa-solid fa-bookmark mr-2 text-emerald-400"></i>Generar Nueva Reserva</h3>
+                <button onclick="closeModal('modal-add-reserva')" class="text-gray-400 hover:text-white text-xl">&times;</button>
+            </div>
+            <form action="{% url 'crear_reserva' %}" method="post" class="p-6 space-y-4">
+                {% csrf_token %}
+                <div>
+                    <label class="block text-sm font-bold text-slate-700 mb-1">Seleccionar Tour Base</label>
+                    <select name="tour" class="w-full border p-2.5 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm bg-white" required>
+                        {% for tour in tours %}
+                        <option value="{{ tour.id }}">{{ tour.nombre }} (${{ tour.precio }})</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-bold text-slate-700 mb-1">Fecha de Salida</label>
+                    <input type="date" name="fecha" class="w-full border p-2.5 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm" required>
+                </div>
+                <div>
+                    <label class="block text-sm font-bold text-slate-700 mb-1">Cantidad de Pasajeros</label>
+                    <input type="number" name="cantidad_pasajeros" min="1" value="1" class="w-full border p-2.5 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm" required>
+                </div>
+                <div class="flex justify-end space-x-3 pt-2">
+                    <button type="button" onclick="closeModal('modal-add-reserva')" class="bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium py-2 px-4 rounded-lg text-sm transition-colors">Cancelar</button>
+                    <button type="submit" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 px-4 rounded-lg text-sm shadow-sm transition-colors">Confirmar Reserva</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="modal-edit-reserva" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center z-50">
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-md overflow-hidden border border-gray-100">
+            <div class="bg-slate-800 text-white p-4 flex justify-between items-center">
+                <h3 class="font-bold text-lg"><i class="fa-solid fa-pen-to-square mr-2 text-blue-400"></i>Modificar Reserva Existente</h3>
+                <button onclick="closeModal('modal-edit-reserva')" class="text-gray-400 hover:text-white text-xl">&times;</button>
+            </div>
+            <form id="form-edit-reserva" method="post" class="p-6 space-y-4">
+                {% csrf_token %}
+                <div>
+                    <label class="block text-sm font-bold text-slate-700 mb-1">Cambiar Tour Relacionado</label>
+                    <select id="edit-reserva-tour" name="tour" class="w-full border p-2.5 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm bg-white" required>
+                        {% for tour in tours %}
+                        <option value="{{ tour.id }}">{{ tour.nombre }} (${{ tour.precio }})</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-bold text-slate-700 mb-1">Nueva Fecha</label>
+                    <input type="date" id="edit-reserva-fecha" name="fecha" class="w-full border p-2.5 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm" required>
+                </div>
+                <div>
+                    <label class="block text-sm font-bold text-slate-700 mb-1">Cantidad de Pasajeros</label>
+                    <input type="number" id="edit-reserva-cantidad" name="cantidad_pasajeros" min="1" class="w-full border p-2.5 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm" required>
+                </div>
+                <div class="flex justify-end space-x-3 pt-2">
+                    <button type="button" onclick="closeModal('modal-edit-reserva')" class="bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium py-2 px-4 rounded-lg text-sm transition-colors">Cancelar</button>
+                    <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg text-sm shadow-sm transition-colors">Actualizar Reserva</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="modal-delete-confirm" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center z-50">
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-sm overflow-hidden border border-gray-100 transform transition-all animate-bounce-short">
+            <div class="p-6 text-center space-y-4">
+                <div class="w-16 h-16 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto text-2xl">
+                    <i class="fa-solid fa-triangle-exclamation"></i>
+                </div>
+                <div>
+                    <h3 class="text-xl font-bold text-slate-900">¿Estás completamente seguro?</h3>
+                    <p class="text-sm text-gray-500 mt-1">Esta acción destruirá el registro seleccionado directamente de la base de datos de Neon y no se puede deshacer.</p>
+                </div>
+                <form id="form-delete-confirm" method="post" class="flex items-center justify-center space-x-3 pt-2">
+                    {% csrf_token %}
+                    <button type="button" onclick="closeModal('modal-delete-confirm')" class="bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium py-2.5 px-4 rounded-lg text-sm transition-colors w-1/2">Cancelar</button>
+                    <button type="submit" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2.5 px-4 rounded-lg text-sm transition-colors w-1/2 shadow-sm">Sí, Eliminar</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 1. Control del Cambio de Pestañas en la Barra Lateral
+        function switchTab(panelId) {
+            // GUARDAR LA PESTAÑA ACTUAL EN LA MEMORIA DEL NAVEGADOR
+            localStorage.setItem('activeDashboardTab', panelId);
+
+            // Ocultar todos los paneles
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            // Mostrar panel seleccionado
+            document.getElementById(panelId).classList.remove('hidden');
+
+            // Quitar estilos activos a todos los botones
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('bg-blue-600', 'text-white');
+                btn.classList.add('text-slate-400', 'hover:bg-slate-800', 'hover:text-white');
+            });
+
+            // Añadir estilos activos al botón presionado
+            if (panelId === 'tours-panel') {
+                document.getElementById('btn-tours').classList.add('bg-blue-600', 'text-white');
+                document.getElementById('btn-tours').classList.remove('text-slate-400', 'hover:bg-slate-800');
+            } else {
+                document.getElementById('btn-reservas').classList.add('bg-blue-600', 'text-white');
+                document.getElementById('btn-reservas').classList.remove('text-slate-400', 'hover:bg-slate-800');
+            }
+        }
+
+        // 2. EJECUTAR AL CARGAR LA PÁGINA PARA RECORDAR LA ÚLTIMA PESTAÑA
+        const savedTab = localStorage.getItem('activeDashboardTab') || 'tours-panel';
+        switchTab(savedTab);
+
+        // 3. Control de Modales Genéricos
+        function openModal(id) {
+            document.getElementById(id).classList.remove('hidden');
+        }
+        function closeModal(id) {
+            document.getElementById(id).classList.add('hidden');
+        }
+
+        // 4. Abrir edición de Tour
+        function openEditTourModal(id, nombre, destino, precio, duracion) {
+            document.getElementById('form-edit-tour').action = '/tours/editar/' + id + '/';
+            document.getElementById('edit-tour-nombre').value = nombre;
+            document.getElementById('edit-tour-destino').value = destino;
+            document.getElementById('edit-tour-precio').value = Math.floor(precio);
+            document.getElementById('edit-tour-duracion').value = duracion;
+            openModal('modal-edit-tour');
+        }
+
+        // 5. Abrir edición de Reserva
+        function openEditReservaModal(id, tourId, fecha, cantidad) {
+            document.getElementById('form-edit-reserva').action = '/reservas/editar/' + id + '/';
+            document.getElementById('edit-reserva-tour').value = tourId;
+            document.getElementById('edit-reserva-fecha').value = fecha;
+            document.getElementById('edit-reserva-cantidad').value = cantidad;
+            openModal('modal-edit-reserva');
+        }
+
+        // 6. Lanzar Modal de Confirmación de Borrado
+        function openDeleteModal(deleteUrl) {
+            document.getElementById('form-delete-confirm').action = deleteUrl;
+            openModal('modal-delete-confirm');
+        }
+    </script>
+</body>
+</html>
