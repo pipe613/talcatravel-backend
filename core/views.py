@@ -5,6 +5,18 @@ from rest_framework import viewsets, permissions
 from .models import Tour, Reserva, Usuario
 from .serializers import TourSerializer, ReservaSerializer, UsuarioSerializer
 
+
+def _get_dashboard_usuario(request):
+    correo = f'{request.user.username}@dashboard.local'
+    usuario, _ = Usuario.objects.get_or_create(
+        correo=correo,
+        defaults={
+            'nombre': request.user.username or 'dashboard',
+            'contrasena': '__dashboard__',
+        },
+    )
+    return usuario
+
 # API ViewSets para la app móvil
 class UsuarioViewSet(viewsets.ModelViewSet):
     queryset = Usuario.objects.all()
@@ -83,6 +95,7 @@ def crear_reserva(request):
             return redirect('dashboard')
         
         Reserva.objects.create(
+            usuario=_get_dashboard_usuario(request),
             tour=tour_obj,
             fecha=request.POST.get('fecha'),
             cantidad_pasajeros=cantidad,
