@@ -1,5 +1,10 @@
 from rest_framework import serializers
-from .models import Tour, Reserva
+from .models import Usuario, Tour, Reserva
+
+class UsuarioSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Usuario
+        fields = '__all__'
 
 class TourSerializer(serializers.ModelSerializer):
     class Meta:
@@ -9,5 +14,4 @@ class TourSerializer(serializers.ModelSerializer):
 class ReservaSerializer(serializers.ModelSerializer):
     class Meta:
         model = Reserva
-        # Solo incluye lo que realmente envías desde la App
-        fields = ['id', 'tour', 'fecha', 'cantidad_pasajeros', 'precio_total']
+        fields = '__all__'

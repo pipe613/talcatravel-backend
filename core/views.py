@@ -1,10 +1,14 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from rest_framework import viewsets, permissions
-from .models import Tour, Reserva
-from .serializers import TourSerializer, ReservaSerializer
+from .models import Tour, Reserva, Usuario
+from .serializers import TourSerializer, ReservaSerializer, UsuarioSerializer
 
 # API ViewSets para la app móvil
+class UsuarioViewSet(viewsets.ModelViewSet):
+    queryset = Usuario.objects.all()
+    serializer_class = UsuarioSerializer
+
 class TourViewSet(viewsets.ModelViewSet):
     queryset = Tour.objects.all()
     serializer_class = TourSerializer

@@ -4,12 +4,14 @@ from rest_framework.routers import DefaultRouter
 from core.views import (
     TourViewSet, ReservaViewSet, dashboard,
     crear_tour, editar_tour, eliminar_tour,
-    crear_reserva, editar_reserva, eliminar_reserva
+    crear_reserva, editar_reserva, eliminar_reserva, UsuarioViewSet
 )
 
 router = DefaultRouter()
+
 router.register(r'tours', TourViewSet)
 router.register(r'reservas', ReservaViewSet)
+router.register(r'usuarios', UsuarioViewSet)  
 
 urlpatterns = [
     # API para Flutter
