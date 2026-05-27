@@ -34,7 +34,7 @@ class Tour(models.Model):
 class Reserva(models.Model):
     # Vinculamos directamente a nuestra tabla propia de usuarios
     usuario = models.ForeignKey(Usuario, on_delete=models.CASCADE, related_name='reservas')
-    tour = models.ForeignKey(Tour, on_delete=models.CASCADE)
+    tour = models.ForeignKey(Tour, on_delete=models.CASCADE, related_name='reservas')
     fecha = models.DateField()
     cantidad_pasajeros = models.IntegerField()
     precio_total = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
