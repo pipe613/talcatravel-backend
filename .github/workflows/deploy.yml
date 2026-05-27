@@ -1,0 +1,42 @@
+name: Deploy to Kubernetes (K3s)
+
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  # FASE 1: Verificación de salud
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout del código
+        uses: actions/checkout@v4
+      - name: Verificar construcción de Docker
+        run: docker build -t talcatravel-test .
+
+  # FASE 2: Despliegue en Kubernetes
+  deploy:
+    needs: verify
+    runs-on: ubuntu-latest
+    steps:
+      - name: Autenticación en Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: elifokami
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Compilación y Push de la Imagen
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: elifokami/talcatravel-backend:latest
+
+      - name: Despliegue en AWS (Kubernetes Rollout)
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.AWS_HOST }}
+          username: ubuntu
+          key: ${{ secrets.AWS_SSH_KEY }}
+          script: |
+            sudo kubectl rollout restart deployment/talcatravel-backend
