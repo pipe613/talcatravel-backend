@@ -69,7 +69,6 @@ def crear_reserva(request):
         cantidad = int(request.POST.get('cantidad_pasajeros', 1))
         
         Reserva.objects.create(
-            # ELIMINADO: usuario=request.user
             tour=tour_obj,
             fecha=request.POST.get('fecha'),
             cantidad_pasajeros=cantidad,
