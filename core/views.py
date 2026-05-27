@@ -1,4 +1,5 @@
 from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from rest_framework import viewsets, permissions
 from .models import Tour, Reserva, Usuario
@@ -42,7 +43,8 @@ def crear_tour(request):
             nombre=request.POST.get('nombre'),
             destino=request.POST.get('destino'),
             precio=request.POST.get('precio'),
-            duracion_dias=request.POST.get('duracion')
+            duracion_dias=request.POST.get('duracion'),
+            cupo_maximo=request.POST.get('cupo_maximo', 20)
         )
     return redirect('dashboard')
 
@@ -54,6 +56,7 @@ def editar_tour(request, pk):
         tour.destino = request.POST.get('destino')
         tour.precio = request.POST.get('precio')
         tour.duracion_dias = request.POST.get('duracion')
+        tour.cupo_maximo = request.POST.get('cupo_maximo', tour.cupo_maximo)
         tour.save()
     return redirect('dashboard')
 
@@ -71,6 +74,13 @@ def crear_reserva(request):
         tour_id = request.POST.get('tour')
         tour_obj = get_object_or_404(Tour, id=tour_id)
         cantidad = int(request.POST.get('cantidad_pasajeros', 1))
+
+        if not tour_obj.puede_reservar(cantidad):
+            messages.error(
+                request,
+                f'Cupo excedido. Solo quedan {tour_obj.cupo_restante()} cupos disponibles para este tour.'
+            )
+            return redirect('dashboard')
         
         Reserva.objects.create(
             tour=tour_obj,
@@ -78,6 +88,7 @@ def crear_reserva(request):
             cantidad_pasajeros=cantidad,
             precio_total=tour_obj.precio * cantidad
         )
+        messages.success(request, 'Reserva creada correctamente.')
     return redirect('dashboard')
 
 @login_required(login_url='login')
@@ -87,12 +98,20 @@ def editar_reserva(request, pk):
         tour_id = request.POST.get('tour')
         tour_obj = get_object_or_404(Tour, id=tour_id)
         cantidad = int(request.POST.get('cantidad_pasajeros', 1))
+
+        if not tour_obj.puede_reservar(cantidad, exclude_reserva_id=reserva.id):
+            messages.error(
+                request,
+                f'Cupo excedido. Solo quedan {tour_obj.cupo_restante(exclude_reserva_id=reserva.id)} cupos disponibles para este tour.'
+            )
+            return redirect('dashboard')
         
         reserva.tour = tour_obj
         reserva.fecha = request.POST.get('fecha')
         reserva.cantidad_pasajeros = cantidad
         reserva.precio_total = tour_obj.precio * cantidad
         reserva.save()
+        messages.success(request, 'Reserva actualizada correctamente.')
     return redirect('dashboard')
 
 @login_required(login_url='login')

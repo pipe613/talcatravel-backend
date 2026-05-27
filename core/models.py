@@ -1,4 +1,5 @@
 from django.db import models
+from django.db.models import Sum
 
 class Usuario(models.Model):
     nombre = models.CharField(max_length=100)
@@ -17,6 +18,18 @@ class Tour(models.Model):
 
     def __str__(self):
         return self.nombre
+
+    def cupo_ocupado(self, exclude_reserva_id=None):
+        reservas = self.reservas.all()
+        if exclude_reserva_id is not None:
+            reservas = reservas.exclude(pk=exclude_reserva_id)
+        return reservas.aggregate(total=Sum('cantidad_pasajeros')).get('total') or 0
+
+    def cupo_restante(self, exclude_reserva_id=None):
+        return self.cupo_maximo - self.cupo_ocupado(exclude_reserva_id=exclude_reserva_id)
+
+    def puede_reservar(self, cantidad, exclude_reserva_id=None):
+        return self.cupo_ocupado(exclude_reserva_id=exclude_reserva_id) + cantidad <= self.cupo_maximo
 
 class Reserva(models.Model):
     # Vinculamos directamente a nuestra tabla propia de usuarios
