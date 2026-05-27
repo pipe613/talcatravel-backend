@@ -20,7 +20,7 @@ class Tour(models.Model):
         return self.nombre
 
     def cupo_ocupado(self, exclude_reserva_id=None):
-        reservas = self.reservas.all()
+        reservas = Reserva.objects.filter(tour=self)
         if exclude_reserva_id is not None:
             reservas = reservas.exclude(pk=exclude_reserva_id)
         return reservas.aggregate(total=Sum('cantidad_pasajeros')).get('total') or 0
@@ -34,7 +34,7 @@ class Tour(models.Model):
 class Reserva(models.Model):
     # Vinculamos directamente a nuestra tabla propia de usuarios
     usuario = models.ForeignKey(Usuario, on_delete=models.CASCADE, related_name='reservas')
-    tour = models.ForeignKey(Tour, on_delete=models.CASCADE, related_name='reservas')
+    tour = models.ForeignKey(Tour, on_delete=models.CASCADE)
     fecha = models.DateField()
     cantidad_pasajeros = models.IntegerField()
     precio_total = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)

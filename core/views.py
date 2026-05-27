@@ -45,7 +45,8 @@ class ReservaViewSet(viewsets.ModelViewSet):
 def dashboard(request):
     tours = Tour.objects.all().order_by('id')
     reservas = Reserva.objects.all().order_by('-id')
-    return render(request, 'dashboard.html', {'tours': tours, 'reservas': reservas})
+    usuarios = Usuario.objects.all().order_by('nombre')
+    return render(request, 'dashboard.html', {'tours': tours, 'reservas': reservas, 'usuarios': usuarios})
 
 # --- Acciones para Tours ---
 @login_required(login_url='login')
@@ -84,7 +85,9 @@ def eliminar_tour(request, pk):
 def crear_reserva(request):
     if request.method == 'POST':
         tour_id = request.POST.get('tour')
+        usuario_id = request.POST.get('usuario')
         tour_obj = get_object_or_404(Tour, id=tour_id)
+        usuario_obj = get_object_or_404(Usuario, id=usuario_id)
         cantidad = int(request.POST.get('cantidad_pasajeros', 1))
 
         if not tour_obj.puede_reservar(cantidad):
@@ -95,7 +98,7 @@ def crear_reserva(request):
             return redirect('dashboard')
         
         Reserva.objects.create(
-            usuario=_get_dashboard_usuario(request),
+            usuario=usuario_obj,
             tour=tour_obj,
             fecha=request.POST.get('fecha'),
             cantidad_pasajeros=cantidad,
@@ -109,7 +112,9 @@ def editar_reserva(request, pk):
     reserva = get_object_or_404(Reserva, pk=pk)
     if request.method == 'POST':
         tour_id = request.POST.get('tour')
+        usuario_id = request.POST.get('usuario')
         tour_obj = get_object_or_404(Tour, id=tour_id)
+        usuario_obj = get_object_or_404(Usuario, id=usuario_id)
         cantidad = int(request.POST.get('cantidad_pasajeros', 1))
 
         if not tour_obj.puede_reservar(cantidad, exclude_reserva_id=reserva.id):
@@ -120,6 +125,7 @@ def editar_reserva(request, pk):
             return redirect('dashboard')
         
         reserva.tour = tour_obj
+        reserva.usuario = usuario_obj
         reserva.fecha = request.POST.get('fecha')
         reserva.cantidad_pasajeros = cantidad
         reserva.precio_total = tour_obj.precio * cantidad
