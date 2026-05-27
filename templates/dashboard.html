@@ -50,10 +50,13 @@
     <div class="flex-1 flex flex-col h-full overflow-y-auto p-8">
 
         {% if messages %}
-        <div class="space-y-3 mb-6">
+        <div id="flash-toast-container" class="fixed top-5 right-5 z-50 space-y-3 w-full max-w-md">
             {% for message in messages %}
-            <div class="rounded-lg px-4 py-3 text-sm font-medium {% if message.tags == 'error' %}bg-red-100 text-red-800 border border-red-200{% else %}bg-emerald-100 text-emerald-800 border border-emerald-200{% endif %}">
-                {{ message }}
+            <div data-flash-toast class="rounded-xl shadow-lg px-4 py-3 text-sm font-medium transition-all duration-300 transform translate-x-0 opacity-100 {% if message.tags == 'error' %}bg-red-100 text-red-800 border border-red-200{% else %}bg-emerald-100 text-emerald-800 border border-emerald-200{% endif %}">
+                <div class="flex items-start justify-between gap-3">
+                    <span class="flex-1">{{ message }}</span>
+                    <button type="button" class="text-current/70 hover:text-current" onclick="closeToast(this.closest('[data-flash-toast]'))">&times;</button>
+                </div>
             </div>
             {% endfor %}
         </div>
@@ -412,6 +415,14 @@
             output.textContent = cupoRestante || '0';
         }
 
+        function closeToast(toastElement) {
+            if (!toastElement) {
+                return;
+            }
+            toastElement.classList.add('opacity-0', 'translate-x-4');
+            window.setTimeout(() => toastElement.remove(), 300);
+        }
+
         const addReservaSelect = document.getElementById('add-reserva-tour');
         if (addReservaSelect) {
             addReservaSelect.addEventListener('change', () => updateReservaCupoRestante('add-reserva-tour', 'add-reserva-cupo-restante'));
@@ -422,6 +433,10 @@
         if (editReservaSelect) {
             editReservaSelect.addEventListener('change', () => updateReservaCupoRestante('edit-reserva-tour', 'edit-reserva-cupo-restante'));
         }
+
+        document.querySelectorAll('[data-flash-toast]').forEach((toastElement) => {
+            window.setTimeout(() => closeToast(toastElement), 3000);
+        });
     </script>
 </body>
 </html>
