@@ -29,7 +29,7 @@ class ReservaSerializer(serializers.ModelSerializer):
         if not tour.puede_reservar(cantidad, exclude_reserva_id=exclude_reserva_id):
             restante = tour.cupo_restante(exclude_reserva_id=exclude_reserva_id)
             raise serializers.ValidationError({
-                'cantidad_pasajeros': f'Cupo excedido. Solo quedan {restante} cupos disponibles para este tour.'
+                'cantidad_pasajeros': f'Cupo excedido. El cupo máximo es {tour.cupo_maximo} y quedan {restante} disponibles para este tour.'
             })
 
         return attrs

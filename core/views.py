@@ -17,6 +17,11 @@ def _get_dashboard_usuario(request):
     )
     return usuario
 
+
+def _cupo_excedido_message(tour, exclude_reserva_id=None):
+    restante = tour.cupo_restante(exclude_reserva_id=exclude_reserva_id)
+    return f'Cupo excedido. El cupo máximo es {tour.cupo_maximo} y quedan {restante} disponibles para este tour.'
+
 # API ViewSets para la app móvil
 class UsuarioViewSet(viewsets.ModelViewSet):
     queryset = Usuario.objects.all()
@@ -91,10 +96,7 @@ def crear_reserva(request):
         cantidad = int(request.POST.get('cantidad_pasajeros', 1))
 
         if not tour_obj.puede_reservar(cantidad):
-            messages.error(
-                request,
-                f'Cupo excedido. Solo quedan {tour_obj.cupo_restante()} cupos disponibles para este tour.'
-            )
+            messages.error(request, _cupo_excedido_message(tour_obj))
             return redirect('dashboard')
         
         Reserva.objects.create(
@@ -118,10 +120,7 @@ def editar_reserva(request, pk):
         cantidad = int(request.POST.get('cantidad_pasajeros', 1))
 
         if not tour_obj.puede_reservar(cantidad, exclude_reserva_id=reserva.id):
-            messages.error(
-                request,
-                f'Cupo excedido. Solo quedan {tour_obj.cupo_restante(exclude_reserva_id=reserva.id)} cupos disponibles para este tour.'
-            )
+            messages.error(request, _cupo_excedido_message(tour_obj, exclude_reserva_id=reserva.id))
             return redirect('dashboard')
         
         reserva.tour = tour_obj
