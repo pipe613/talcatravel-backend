@@ -36,6 +36,15 @@ jobs:
           push: true
           no-cache: true
           tags: elifokami/talcatravel-backend:latest
+      
+      - name: Copiar carpeta k8s a AWS
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.AWS_HOST }}
+          username: ubuntu
+          key: ${{ secrets.AWS_SSH_KEY }}
+          source: "k8s/*"
+          target: "/home/ubuntu/talcatravel-deploy"
 
       - name: Despliegue en AWS (Kubernetes Rollout)
         uses: appleboy/ssh-action@v1.0.3
@@ -44,4 +53,7 @@ jobs:
           username: ubuntu
           key: ${{ secrets.AWS_SSH_KEY }}
           script: |
+            # 1. Aplicar todos los archivos YAML que subimos a la carpeta k8s
+            sudo kubectl apply -f /home/ubuntu/talcatravel-deploy/k8s/
+
             sudo kubectl rollout restart deployment/talcatravel-backend

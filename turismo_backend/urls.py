@@ -1,4 +1,4 @@
-from django.urls import path, include
+from django.urls import path, include  
 from django.contrib.auth import views as auth_views
 from rest_framework.routers import DefaultRouter
 from core.views import (
@@ -33,4 +33,7 @@ urlpatterns = [
     path('reservas/crear/', crear_reserva, name='crear_reserva'),
     path('reservas/editar/<int:pk>/', editar_reserva, name='editar_reserva'),
     path('reservas/eliminar/<int:pk>/', eliminar_reserva, name='eliminar_reserva'),
+    
+    # Métricas de Prometheus
+    path('', include('django_prometheus.urls')),
 ]
